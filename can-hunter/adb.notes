@@ -1,0 +1,4 @@
+1|root@anzu:/ # setprop service.adb.tcp.port 5555
+root@anzu:/ # stop adbd
+root@anzu:/ # start adbs
+root@anzu:/ # start adbd  

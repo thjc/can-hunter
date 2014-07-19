@@ -1,0 +1,3 @@
+#!/system/bin/sh
+am start -S -n nz.net.plan9.can_hunter/nz.net.plan9.can_hunter.MainActivity
+
