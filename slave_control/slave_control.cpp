@@ -39,8 +39,8 @@ void loop()
             {
                 digitalWrite(LED_PIN, HIGH);
                 
-                int left_speed = 2*(buffer[1]);
-                int right_speed = 2*(buffer[3]);
+                int left_speed = -2*(buffer[1]);
+                int right_speed = -2*(buffer[3]);
                 if ('-' == buffer[0])
                 {
                     left_speed *= -1;
@@ -53,10 +53,14 @@ void loop()
                 
                 motors.setLeftSpeed(left_speed);
                 motors.setRightSpeed(right_speed);
-                delay(duration);
+                Serial.setTimeout(duration);
+            }
+            else
+            {
                 motors.setLeftSpeed(0);
                 motors.setRightSpeed(0);
                 digitalWrite(LED_PIN, LOW);
+                Serial.setTimeout(-1);
                 Serial.println("!Done");
             }
         }

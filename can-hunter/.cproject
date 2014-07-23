@@ -24,8 +24,7 @@
 							<builder id="com.android.builder.1440160375" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Android Builder" superClass="com.android.builder"/>
 							<tool id="com.android.gcc.compiler.1370229518" name="Android GCC Compiler" superClass="com.android.gcc.compiler">
 								<option id="com.android.gcc.option.includePath.1261251929" superClass="com.android.gcc.option.includePath" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tcollett/Projects/local_projects/zumo/upstream/OpenCV-2.4.8-android-sdk/sdk/native/jni/include"/>
-									<listOptionValue builtIn="false" value="/data/Projects/local_projects/zumo/upstream/OpenCV-2.4.8-android-sdk/sdk/native/jni/include"/>
+									<listOptionValue builtIn="false" value="/home/tcollett/Projects/can-hunter/upstream/OpenCV-2.4.8-android-sdk/sdk/native/jni/include"/>
 								</option>
 								<inputType id="com.android.gcc.inputType.2090394740" superClass="com.android.gcc.inputType"/>
 							</tool>

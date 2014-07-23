@@ -12,6 +12,9 @@ using namespace cv;
 
 #include "MotorControl.h"
 
+const int pulse_length = 1000; // minimum of 1000
+const char speed = 150;
+
 SerialMotors motors;
 
 int GetAverageX(Mat &image) {
@@ -28,6 +31,28 @@ int GetAverageX(Mat &image) {
 	}
 	return accumulator / count;
 }
+
+void DrawStatusRect(Mat &mImage, const Scalar &colour, int offset)
+{
+	rectangle(mImage, Rect(2+14*offset,2,10,10), colour, 2, 8, 0);
+
+}
+
+enum status_codes
+{
+	MOTOR_CONNECTION,
+	SKIP_STATE,
+	RATIO_GOOD,
+	AREA_GOOD
+};
+
+const Scalar Red(255,0,0);
+const Scalar Green(0,255,0);
+const Scalar Blue(0,0,255);
+const Scalar Cyan(0,255,255);
+const Scalar Magenta(255,0,255);
+const Scalar Yellow(255,255,0);
+const Scalar White(255,255,255);
 
 extern "C" {
 
@@ -87,46 +112,45 @@ JNIEXPORT jint JNICALL Java_nz_net_plan9_can_1hunter_MainActivity_FindCan(
 	mOut = mIn;
 	if (!contours.empty())
 	{
-		drawContours( mOut, contours, largest_contour_index, Scalar(0,255,255), 1, 8, hierarchy );
+		drawContours( mOut, contours, largest_contour_index, Cyan, 1, 8, hierarchy );
 	}
-	if (motors.AllGood()) {
-		rectangle(mOut, Rect(0,0,100,2), Scalar(255, 255, 0), 1, 8, 0);
-	} else {
-		rectangle(mOut, Rect(0,0,100,2), Scalar(255, 0, 255), 1, 8, 0);
-	}
-	rectangle(mOut, bounding_rect, Scalar(255, 0, 0), 2, 8, 0);
 
-	rectangle(mOut, Rect(0,4,100,6), Scalar(255, 255, 255), 1, 8, 0);
+	DrawStatusRect(mOut, motors.AllGood() ? Blue : Red, MOTOR_CONNECTION);
+	DrawStatusRect(mOut, skip > 0 ? Blue : Red, SKIP_STATE);
+
 	if (skip > 0)
 	{
-		rectangle(mOut, Rect(0,4,100,6), Scalar(255, 0, 0), 1, 8, 0);
 		--skip;
 		return 0;
 	}
 
+	rectangle(mOut, bounding_rect, Scalar(255, 0, 0), 2, 8, 0);
 
-	const int pulse_length = 1000; // minimum of 1000
-	const char speed = 150;
+	const int minArea(2000);
+	const float minRatio(0.2f);
+
 	int full_area = bounding_rect.height * bounding_rect.width;
-	if (full_area > 2000)
+	float ratio = static_cast<float> (largest_area)/static_cast<float> (full_area);
+	DrawStatusRect(mOut, full_area > minArea ? Blue : Red, RATIO_GOOD);
+	DrawStatusRect(mOut, ratio > minRatio ? Blue : Red, AREA_GOOD);
+	if (full_area > minArea)
 	{
-		float ratio = static_cast<float> (largest_area)/static_cast<float> (full_area);
 		__android_log_print(ANDROID_LOG_DEBUG, "nz.net.plan9.can_hunter",
 				"full_areal %d ratio %f", full_area, ratio);
 
 		rectangle(mOut, bounding_rect, Scalar(0, 0, 255), 2, 8, 0);
 
-		if (ratio > 0.2)
+		if (ratio > minRatio)
 		{
 			rectangle(mOut, bounding_rect, Scalar(0, 255, 0), 2, 8, 0);
-			int average = bounding_rect.y + bounding_rect.height;
+			int average = bounding_rect.y + bounding_rect.height/2;
 
 			__android_log_print(ANDROID_LOG_DEBUG, "nz.net.plan9.can_hunter",
 					"Average is %d of %d", average, mOut.rows);
 
 			float errorRatio = static_cast<float> (average) /static_cast<float>(mErode.rows) - 0.5;
 
-			if (average > 0) {
+			if (errorRatio > 0) {
 				motors.SetMotors(speed, (1-errorRatio)*speed, pulse_length);
 			} else {
 				motors.SetMotors((1-errorRatio)*speed, speed, pulse_length);
@@ -135,8 +159,8 @@ JNIEXPORT jint JNICALL Java_nz_net_plan9_can_1hunter_MainActivity_FindCan(
 		}
 	}
 	// didn't find a can so just spin
-	motors.SetMotors(+speed, -speed, 5*pulse_length);
-	skip = 5;
+	motors.SetMotors(+speed, -speed, 3*pulse_length);
+	skip = 3;
 	return 0;
 }
 
